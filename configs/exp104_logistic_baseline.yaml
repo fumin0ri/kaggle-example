@@ -1,0 +1,13 @@
+model: logistic
+target: Transported
+seed: 42
+feature_set: basic
+threshold: 0.5
+memo: Regularized linear baseline
+cv:
+  strategy: stratified_group
+  n_splits: 5
+  fold_path: artifacts/folds_group_5_seed42.csv
+params:
+  C: 0.12
+  solver: liblinear

@@ -1,0 +1,15 @@
+model: extratrees
+target: Transported
+seed: 42
+feature_set: basic
+threshold: 0.5
+memo: ExtraTrees diversity baseline
+cv:
+  strategy: stratified_group
+  n_splits: 5
+  fold_path: artifacts/folds_group_5_seed42.csv
+params:
+  n_estimators: 450
+  max_features: 0.8
+  min_samples_leaf: 2
+  max_depth: null

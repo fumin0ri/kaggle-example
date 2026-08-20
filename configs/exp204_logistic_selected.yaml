@@ -1,0 +1,14 @@
+model: logistic
+target: Transported
+seed: 42
+feature_set: selected
+feature_blocks_file: artifacts/selected_blocks.yaml
+threshold: 0.5
+memo: Logistic regression after group-CV feature-block selection
+cv:
+  strategy: stratified_group
+  n_splits: 5
+  fold_path: artifacts/folds_group_5_seed42.csv
+params:
+  C: 0.12
+  solver: liblinear

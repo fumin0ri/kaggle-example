@@ -1,0 +1,19 @@
+model: catboost
+target: Transported
+seed: 42
+feature_set: selected
+feature_blocks_file: artifacts/selected_blocks.yaml
+threshold: 0.5
+memo: CatBoost after group-CV feature-block selection
+cv: &group_cv
+  strategy: stratified_group
+  n_splits: 5
+  fold_path: artifacts/folds_group_5_seed42.csv
+early_stopping_rounds: 100
+verbose: 0
+params:
+  iterations: 650
+  learning_rate: 0.045
+  depth: 7
+  l2_leaf_reg: 5
+  random_strength: 0.4

@@ -1,0 +1,13 @@
+exp,model,feature_set,cv_strategy,cv_accuracy,cv_auc,memo
+exp001_xgb_initial,xgboost,raw,stratified,0.793972,0.873007,Initial XGBoost baseline with ordinary StratifiedKFold
+exp101_catboost_baseline,catboost,basic,stratified_group,0.821235,0.904894,CatBoost native-categorical diverse baseline
+exp102_xgboost_baseline,xgboost,basic,stratified_group,0.815024,0.90384,XGBoost one-hot diverse baseline
+exp103_extratrees_baseline,extratrees,basic,stratified_group,0.806626,0.887331,ExtraTrees diversity baseline
+exp104_logistic_baseline,logistic,basic,stratified_group,0.797193,0.88968,Regularized linear baseline
+exp105_mlp_baseline,mlp,basic,stratified_group,0.802715,0.895,Small neural-network diversity baseline
+exp201_catboost_selected,catboost,selected,stratified_group,0.81997,0.904335,CatBoost after group-CV feature-block selection
+exp202_xgboost_selected,xgboost,selected,stratified_group,0.814794,0.903586,XGBoost after group-CV feature-block selection
+exp203_extratrees_selected,extratrees,selected,stratified_group,0.809272,0.891099,ExtraTrees after group-CV feature-block selection
+exp204_logistic_selected,logistic,selected,stratified_group,0.797308,0.889577,Logistic regression after group-CV feature-block selection
+exp205_mlp_selected,mlp,selected,stratified_group,0.8026,0.89115,MLP after group-CV feature-block selection
+hill_climb_ensemble,hill_climb,oof_selected,stratified_group,0.8213505119061314,0.9049130620975943,Weights and threshold selected only from shared-fold OOF

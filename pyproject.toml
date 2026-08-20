@@ -1,0 +1,33 @@
+[project]
+name = "spaceship-titanic-workflow"
+version = "0.1.0"
+description = "A reproducible end-to-end Kaggle workflow using Spaceship Titanic"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "catboost>=1.2.8",
+    "kaggle>=1.7",
+    "matplotlib>=3.9",
+    "numpy>=2.0",
+    "pandas>=2.2",
+    "pyyaml>=6.0.2",
+    "scikit-learn>=1.6",
+    "seaborn>=0.13",
+    "xgboost>=3.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.12"]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

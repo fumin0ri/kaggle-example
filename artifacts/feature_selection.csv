@@ -1,0 +1,17 @@
+round,candidate,blocks,cv_accuracy,accepted
+0,BASE,"cabin,group,age,spend_total,missing",0.8047854595651673,True
+1,identity,"cabin,group,age,spend_total,missing,identity",0.8059358104221788,True
+1,name,"cabin,group,age,spend_total,missing,name",0.803635108708156,False
+1,spend_log,"cabin,group,age,spend_total,missing,spend_log",0.8021396525940412,False
+1,spend_ratio,"cabin,group,age,spend_total,missing,spend_ratio",0.8032900034510526,False
+1,cross,"cabin,group,age,spend_total,missing,cross",0.8019095824226389,False
+1,rules,"cabin,group,age,spend_total,missing,rules",0.8035200736224548,False
+2,name,"cabin,group,age,spend_total,missing,identity,name",0.8082365121362015,True
+2,spend_log,"cabin,group,age,spend_total,missing,identity,spend_log",0.8054756700793743,False
+2,spend_ratio,"cabin,group,age,spend_total,missing,identity,spend_ratio",0.8039802139652594,False
+2,cross,"cabin,group,age,spend_total,missing,identity,cross",0.8047854595651673,False
+2,rules,"cabin,group,age,spend_total,missing,identity,rules",0.8060508455078799,False
+3,spend_log,"cabin,group,age,spend_total,missing,identity,name,spend_log",0.8042102841366617,False
+3,spend_ratio,"cabin,group,age,spend_total,missing,identity,name,spend_ratio",0.8043253192223628,False
+3,cross,"cabin,group,age,spend_total,missing,identity,name,cross",0.8044403543080639,False
+3,rules,"cabin,group,age,spend_total,missing,identity,name,rules",0.8073162314505924,False

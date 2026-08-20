@@ -1,0 +1,18 @@
+model: catboost
+target: Transported
+seed: 42
+feature_set: basic
+threshold: 0.5
+memo: CatBoost native-categorical diverse baseline
+cv: &group_cv
+  strategy: stratified_group
+  n_splits: 5
+  fold_path: artifacts/folds_group_5_seed42.csv
+early_stopping_rounds: 80
+verbose: 0
+params:
+  iterations: 500
+  learning_rate: 0.05
+  depth: 7
+  l2_leaf_reg: 5
+  random_strength: 0.4

@@ -1,0 +1,13 @@
+selected_blocks:
+- cabin
+- group
+- age
+- spend_total
+- missing
+- identity
+- name
+selection_model: ExtraTreesClassifier
+cv_strategy: StratifiedGroupKFold
+cv_accuracy: 0.8082365121362015
+n_estimators: 160
+seed: 42
