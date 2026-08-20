@@ -1,0 +1,23 @@
+model: xgboost
+target: Transported
+seed: 42
+feature_set: selected
+feature_blocks_file: artifacts/selected_blocks.yaml
+threshold: 0.5
+memo: HPO best trial 0; dedicated grouped tuning CV accuracy 0.811457
+cv:
+  strategy: stratified_group
+  n_splits: 5
+  fold_path: artifacts/folds_group_5_seed42.csv
+verbose: 0
+early_stopping_rounds: 80
+params:
+  n_estimators: 650
+  learning_rate: 0.035
+  max_depth: 5
+  min_child_weight: 4
+  subsample: 0.85
+  colsample_bytree: 0.8
+  reg_alpha: 0.05
+  reg_lambda: 2.5
+  tree_method: hist

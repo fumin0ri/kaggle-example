@@ -1,0 +1,14 @@
+{
+  "model": "extratrees",
+  "best_trial": 3,
+  "tuning_cv_accuracy": 0.8074312665362936,
+  "tuning_cv_strategy": "StratifiedGroupKFold(3)",
+  "tuning_seed": 2025,
+  "params": {
+    "n_estimators": 350,
+    "max_features": 0.5756856352296862,
+    "min_samples_leaf": 5,
+    "max_depth": null,
+    "class_weight": "balanced"
+  }
+}

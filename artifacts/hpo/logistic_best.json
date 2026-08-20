@@ -1,0 +1,13 @@
+{
+  "model": "logistic",
+  "best_trial": 4,
+  "tuning_cv_accuracy": 0.7991487403658116,
+  "tuning_cv_strategy": "StratifiedGroupKFold(3)",
+  "tuning_seed": 2025,
+  "params": {
+    "C": 0.4260595868371838,
+    "class_weight": "balanced",
+    "solver": "liblinear",
+    "max_iter": 2000
+  }
+}

@@ -1,0 +1,21 @@
+model: catboost
+target: Transported
+seed: 42
+feature_set: selected
+feature_blocks_file: artifacts/selected_blocks.yaml
+threshold: 0.5
+memo: HPO best trial 3; dedicated grouped tuning CV accuracy 0.813068
+cv:
+  strategy: stratified_group
+  n_splits: 5
+  fold_path: artifacts/folds_group_5_seed42.csv
+verbose: 0
+early_stopping_rounds: 80
+params:
+  iterations: 350
+  learning_rate: 0.058115207845473936
+  depth: 5
+  l2_leaf_reg: 2.0701146773404044
+  random_strength: 0.399359987369685
+  bagging_temperature: 2.7390821742619385
+  allow_writing_files: false

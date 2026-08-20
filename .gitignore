@@ -7,3 +7,6 @@ input/*.csv
 output/*
 !output/.gitkeep
 reports/adversarial_oof.csv
+artifacts/hpo/*.db
+artifacts/hpo/*.db-*
+notebooks/.ipynb_checkpoints/

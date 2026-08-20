@@ -1,12 +1,18 @@
 from __future__ import annotations
 
+from pathlib import Path
+
+import nbformat
 import numpy as np
 import pandas as pd
 
 from ensemble import hill_climb
+from hpo import materialize_parameters
 from kaggle_workflow.cv import group_overlap_by_fold, make_fold_assignments
 from kaggle_workflow.features import create_features
 from kaggle_workflow.metrics import best_accuracy_threshold
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def tiny_frame() -> pd.DataFrame:
@@ -64,3 +70,53 @@ def test_threshold_and_hill_climb_are_deterministic() -> None:
     assert np.isclose(weights.sum(), 1.0)
     assert len(history) >= 1
     assert ensemble.shape == y.shape
+
+
+def test_hpo_parameters_are_materialized_for_each_estimator() -> None:
+    mlp = materialize_parameters(
+        "mlp",
+        {
+            "hidden_layers": "64,32",
+            "alpha": 0.001,
+            "learning_rate_init": 0.002,
+            "batch_size": 64,
+        },
+    )
+    xgboost = materialize_parameters(
+        "xgboost",
+        {
+            "n_estimators": 500,
+            "max_depth": 5,
+            "learning_rate": 0.03,
+            "subsample": 0.8,
+            "colsample_bytree": 0.8,
+            "min_child_weight": 3,
+            "reg_alpha": 0.1,
+            "reg_lambda": 2.0,
+        },
+    )
+    assert mlp["hidden_layer_sizes"] == [64, 32]
+    assert "hidden_layers" not in mlp
+    assert xgboost["tree_method"] == "hist"
+
+
+def test_analysis_notebooks_are_valid_and_executed() -> None:
+    notebook_paths = sorted((ROOT / "notebooks").glob("*.ipynb"))
+    assert [path.name for path in notebook_paths] == [
+        "01_simple_eda.ipynb",
+        "02_detailed_eda_and_cv.ipynb",
+        "03_hpo_and_ensemble_analysis.ipynb",
+    ]
+    for path in notebook_paths:
+        notebook = nbformat.read(path, as_version=4)
+        nbformat.validate(notebook)
+        code_cells = [cell for cell in notebook.cells if cell.cell_type == "code"]
+        assert code_cells
+        assert any(cell.get("outputs") for cell in code_cells)
+
+
+def test_final_submission_matches_competition_schema() -> None:
+    submission = pd.read_csv(ROOT / "submissions" / "submission_hill_climb.csv")
+    assert submission.columns.tolist() == ["PassengerId", "Transported"]
+    assert len(submission) == 4_277
+    assert set(submission["Transported"].unique()) <= {True, False}

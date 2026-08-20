@@ -1,0 +1,18 @@
+model: logistic
+target: Transported
+seed: 42
+feature_set: selected
+feature_blocks_file: artifacts/selected_blocks.yaml
+threshold: 0.5
+memo: HPO best trial 4; dedicated grouped tuning CV accuracy 0.799149
+cv:
+  strategy: stratified_group
+  n_splits: 5
+  fold_path: artifacts/folds_group_5_seed42.csv
+verbose: 0
+early_stopping_rounds: 80
+params:
+  C: 0.4260595868371838
+  class_weight: balanced
+  solver: liblinear
+  max_iter: 2000

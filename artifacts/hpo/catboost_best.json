@@ -1,0 +1,16 @@
+{
+  "model": "catboost",
+  "best_trial": 3,
+  "tuning_cv_accuracy": 0.8130679857356494,
+  "tuning_cv_strategy": "StratifiedGroupKFold(3)",
+  "tuning_seed": 2025,
+  "params": {
+    "iterations": 350,
+    "learning_rate": 0.058115207845473936,
+    "depth": 5,
+    "l2_leaf_reg": 2.0701146773404044,
+    "random_strength": 0.399359987369685,
+    "bagging_temperature": 2.7390821742619385,
+    "allow_writing_files": false
+  }
+}

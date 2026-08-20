@@ -10,4 +10,9 @@ exp202_xgboost_selected,xgboost,selected,stratified_group,0.814794,0.903586,XGBo
 exp203_extratrees_selected,extratrees,selected,stratified_group,0.809272,0.891099,ExtraTrees after group-CV feature-block selection
 exp204_logistic_selected,logistic,selected,stratified_group,0.797308,0.889577,Logistic regression after group-CV feature-block selection
 exp205_mlp_selected,mlp,selected,stratified_group,0.8026,0.89115,MLP after group-CV feature-block selection
+exp301_catboost_hpo,catboost,selected,stratified_group,0.816749,0.901044,HPO best trial 3; dedicated grouped tuning CV accuracy 0.813068
+exp302_xgboost_hpo,xgboost,selected,stratified_group,0.814794,0.903586,HPO best trial 0; dedicated grouped tuning CV accuracy 0.811457
+exp303_extratrees_hpo,extratrees,selected,stratified_group,0.80467,0.89681,HPO best trial 3; dedicated grouped tuning CV accuracy 0.807431
+exp304_logistic_hpo,logistic,selected,stratified_group,0.798804,0.890802,HPO best trial 4; dedicated grouped tuning CV accuracy 0.799149
+exp305_mlp_hpo,mlp,selected,stratified_group,0.806166,0.897505,HPO best trial 2; dedicated grouped tuning CV accuracy 0.806741
 hill_climb_ensemble,hill_climb,oof_selected,stratified_group,0.8213505119061314,0.9049130620975943,Weights and threshold selected only from shared-fold OOF

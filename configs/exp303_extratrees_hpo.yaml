@@ -1,0 +1,19 @@
+model: extratrees
+target: Transported
+seed: 42
+feature_set: selected
+feature_blocks_file: artifacts/selected_blocks.yaml
+threshold: 0.5
+memo: HPO best trial 3; dedicated grouped tuning CV accuracy 0.807431
+cv:
+  strategy: stratified_group
+  n_splits: 5
+  fold_path: artifacts/folds_group_5_seed42.csv
+verbose: 0
+early_stopping_rounds: 80
+params:
+  n_estimators: 350
+  max_features: 0.5756856352296862
+  min_samples_leaf: 5
+  max_depth: null
+  class_weight: balanced
