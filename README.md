@@ -1,7 +1,7 @@
 # Predict Customer Churn — reproducible Kaggle workflow
 
-顧客解約を予測する表形式データを題材に、EDAから提出、複数モデル比較、アンサンブル、
-Nested Target Encodingの検証までを順に進める実例です。
+顧客解約を予測する表形式データを題材に、EDAから提出、複数モデル比較、Nested Target Encoding、
+特徴量選択、HPO、OOF Hill Climbing Ensembleまでを順に進める実例です。
 
 このブランチは、実験をただ並べるのではなく、次の問いへ順番に答える構成になっています。
 
@@ -12,6 +12,9 @@ Nested Target Encodingの検証までを順に進める実例です。
 5. OOF予測を使って過度に楽観的でないアンサンブルを作れるか
 6. 目的変数を使う特徴量をリークなしで生成できるか
 7. 追加特徴量は本当に同じモデルのOOFを改善したか
+8. 120候補からモデルごとに有効な特徴量だけを残せるか
+9. 特徴量集合を固定して3モデルを再現可能にHPOできるか
+10. OOFだけでHill Climbingを行い、検証済みの提出を作れるか
 
 ## ディレクトリ構成
 
@@ -28,10 +31,16 @@ Nested Target Encodingの検証までを順に進める実例です。
 │   ├── 04_diverse_baseline.ipynb
 │   ├── 05_ensemble.ipynb
 │   ├── 06_FE.ipynb
-│   └── 06-FE2.ipynb
+│   ├── 06-FE2.ipynb
+│   ├── 07_feature_selection.ipynb
+│   ├── 08_HPO.ipynb
+│   └── 09_hill_climbing_ensemble.ipynb
 ├── output/                    # 固定foldとNested TE parquet（Git管理外）
 ├── config.py                  # target、ID、fold、seedの共通設定
+├── ensemble.py                # cross-fitted OOF Hill Climbing
 ├── features.py                # feature schema、Nested Pair TE、fold別loader
+├── hpo.py                     # Optuna探索空間とJSON I/O
+├── selection.py               # OOF screening、相関除去、保守的top-k選択
 ├── train.py                   # 前処理、5モデル定義、共通CV runner
 ├── validation.py              # deterministic StratifiedKFold
 └── requirements.txt
@@ -175,6 +184,53 @@ base予測とは別の`fe2_*` prefixでOOF/test予測を保存するため、元
 明示的なカテゴリ交互作用が線形モデルには有効だった一方、木・MLPには120個の相関した特徴量が冗長に
 なった可能性と整合します。したがって、特徴量は全モデルへ一律採用せず、モデル別に採否を決めます。
 
+### 07 — Model-specific feature selection
+
+`07_feature_selection.ipynb`では、120個のTE候補を二段階で絞ります。
+
+1. selection専用fold（seed=2025）用のNested TEを生成
+2. leakage-safe OOF TEの単変量AUCで候補を順位付け
+3. 絶対相関0.995以上のほぼ重複した候補を除外
+4. `{0, 5, 10, 20, 40, 80, all}`のtop-k集合を3モデルで比較
+5. paired fold deltaの`mean - 1 standard error`が最小改善幅を超える集合だけを採用
+
+0列を候補から外さない点が重要です。追加特徴量が安定してbaseを超えなければ、そのモデルではTEを
+採用しません。結果は`artifacts/selected_te_features.json`へモデル別に保存します。
+
+### 08 — HPO and frozen confirmation
+
+`08_HPO.ipynb`ではNotebook 07の特徴量集合を固定して、3モデルをOptunaで最適化します。
+
+| Model | 主な探索対象 | Trial budget |
+| --- | --- | ---: |
+| XGBoost | depth、learning rate、sampling、L1/L2 | 30 |
+| Logistic Regression | C、class weight | 20 |
+| MLP | 層構成、activation、L2、batch、learning rate | 30 |
+
+SQLite studyへtrialを保存し、中断後も再開できます。手動baselineをtrial 0としてenqueueし、HPOが
+少なくとも既存設定と比較されるようにします。探索中はtest予測を作りません。
+
+best parameter確定後、元のseed=42 foldへ列とparameterを固定し、`final_xgboost`、
+`final_logisticregression`、`final_mlp`のOOF/test予測を一度だけ保存します。tuning scoreを最終scoreと
+呼ばず、confirmationとの差も記録します。
+
+### 09 — OOF Hill Climbing Ensemble and submission
+
+`09_hill_climbing_ensemble.ipynb`では3候補のID、target、fold、test順を検証し、単体AUCとOOF相関を
+確認してからHill Climbingを行います。
+
+各foldのweightは残り4 foldのOOFだけで探索します。現在のblendを複数のstep sizeで各候補方向へ動かし、
+fit側AUCが改善する一手を反復します。validation foldのtargetは、そのfoldのweight決定に使われません。
+
+最終候補は次の3つです。
+
+- confirmation OOFが最高の単体モデル
+- 3モデルの単純平均
+- cross-fitted OOF Hill Climbing
+
+ensembleの改善がbest singleより`5e-5`未満なら、複雑化せずbest singleを提出に使います。選択した予測は
+`submission_final.csv`へ、fold別weight、探索履歴、最終OOFは`artifacts/`へ保存します。
+
 ## 改善した点
 
 - Notebook 02で`Path`をimport前に使っていた初期化順を修正
@@ -187,11 +243,17 @@ base予測とは別の`fe2_*` prefixでOOF/test予測を保存するため、元
 - FE2のOOF/test予測を`fe2_*`として保存
 - base artifactの意図しない上書きを防止
 - ensemble weightをcross-fittingで評価
+- TE候補をOOF AUCと相関でscreeningする処理を追加
+- paired fold差に基づくモデル別top-k選択を追加
+- Optunaの再開可能な3モデルHPOを追加
+- HPO用CVとparameter固定後のconfirmation CVを分離
+- cross-fitted OOF Hill Climbingと保守的な最終候補選択を追加
 - 各Notebookへ目的、リーク境界、判断基準を追記
 
 ## 再現性上の注意
 
 - Notebookは重い学習結果を誤って表示しないよう、コード整理後の出力をクリアしています。
+- Notebook 07〜09はコードと解説のみで、まだ実行していません。
 - `input/`、`output/`、`artifacts/`、submissionはGit管理外です。
 - まずNotebook 01と02を実行し、その後は番号順に進めてください。
 - 数時間かかるMLPやNested TE生成は、少数fold・少数pairで疎通してから全実行するのが安全です。

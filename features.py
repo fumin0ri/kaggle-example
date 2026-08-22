@@ -185,6 +185,7 @@ def load_nested_pair_te(
     train_mask: pd.Series,
     valid_mask: pd.Series,
     feature_dir: str | Path,
+    selected_te_features: list[str] | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Load and align one outer fold's saved target-encoding features."""
     del fold_column  # Kept in the loader interface used by run_cv.
@@ -195,10 +196,28 @@ def load_nested_pair_te(
     valid_te = pd.read_parquet(feature_dir / f"outer_fold_{fold_tag}_valid.parquet")
     test_te = pd.read_parquet(feature_dir / f"outer_fold_{fold_tag}_test.parquet")
 
-    te_features = [column for column in train_te.columns if column != id_column]
-    expected_columns = {id_column, *te_features}
+    available_te_features = [
+        column for column in train_te.columns if column != id_column
+    ]
+    expected_columns = {id_column, *available_te_features}
     if set(valid_te.columns) != expected_columns or set(test_te.columns) != expected_columns:
         raise ValueError(f"outer_fold={outer_fold}: inconsistent TE columns")
+
+    te_features = (
+        available_te_features
+        if selected_te_features is None
+        else list(selected_te_features)
+    )
+    missing_features = set(te_features) - set(available_te_features)
+    if missing_features:
+        raise ValueError(
+            f"outer_fold={outer_fold}: requested TE features are missing: "
+            f"{sorted(missing_features)}"
+        )
+
+    train_te = train_te[[id_column, *te_features]]
+    valid_te = valid_te[[id_column, *te_features]]
+    test_te = test_te[[id_column, *te_features]]
 
     duplicated = set(features) & set(te_features)
     if duplicated:

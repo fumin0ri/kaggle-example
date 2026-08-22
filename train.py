@@ -72,6 +72,7 @@ def make_model(
     categorical_features: list[str],
     seed: int = 42,
     use_gpu: bool = False,
+    model_params: dict[str, object] | None = None,
 ):
     """Build the shared baseline definition used in comparison notebooks."""
     if model_name == "CatBoost":
@@ -86,6 +87,8 @@ def make_model(
             "allow_writing_files": False,
             "cat_features": categorical_features,
         }
+        if model_params:
+            parameters.update(model_params)
         if use_gpu:
             parameters.update(task_type="GPU", devices="0")
         return CatBoostClassifier(**parameters)
@@ -105,41 +108,52 @@ def make_model(
             "random_state": seed,
             "n_jobs": -1,
         }
+        if model_params:
+            parameters.update(model_params)
         if use_gpu:
             parameters["device"] = "cuda"
         estimator = XGBClassifier(**parameters)
         scale_numeric = False
     elif model_name == "ExtraTrees":
-        estimator = ExtraTreesClassifier(
-            n_estimators=500,
-            min_samples_leaf=2,
-            max_features="sqrt",
-            random_state=seed,
-            n_jobs=-1,
-        )
+        parameters = {
+            "n_estimators": 500,
+            "min_samples_leaf": 2,
+            "max_features": "sqrt",
+            "random_state": seed,
+            "n_jobs": -1,
+        }
+        if model_params:
+            parameters.update(model_params)
+        estimator = ExtraTreesClassifier(**parameters)
         scale_numeric = False
     elif model_name == "LogisticRegression":
-        estimator = LogisticRegression(
-            C=1.0,
-            max_iter=3000,
-            solver="lbfgs",
-            random_state=seed,
-        )
+        parameters = {
+            "C": 1.0,
+            "max_iter": 3000,
+            "solver": "lbfgs",
+            "random_state": seed,
+        }
+        if model_params:
+            parameters.update(model_params)
+        estimator = LogisticRegression(**parameters)
         scale_numeric = True
     elif model_name == "MLP":
-        estimator = MLPClassifier(
-            hidden_layer_sizes=(32, 16),
-            activation="relu",
-            solver="adam",
-            alpha=1e-3,
-            batch_size=64,
-            learning_rate_init=1e-3,
-            max_iter=1000,
-            early_stopping=True,
-            validation_fraction=0.15,
-            n_iter_no_change=30,
-            random_state=seed,
-        )
+        parameters = {
+            "hidden_layer_sizes": (32, 16),
+            "activation": "relu",
+            "solver": "adam",
+            "alpha": 1e-3,
+            "batch_size": 64,
+            "learning_rate_init": 1e-3,
+            "max_iter": 1000,
+            "early_stopping": True,
+            "validation_fraction": 0.15,
+            "n_iter_no_change": 30,
+            "random_state": seed,
+        }
+        if model_params:
+            parameters.update(model_params)
+        estimator = MLPClassifier(**parameters)
         scale_numeric = True
     else:
         raise ValueError(f"unknown model: {model_name}")
@@ -189,6 +203,7 @@ def run_cv(
     output_dir: str | Path | None = None,
     fold_feature_loader: FoldFeatureLoader | None = None,
     return_models: bool = False,
+    predict_test: bool = True,
 ) -> dict[str, object]:
     """Run fixed-fold CV and optionally save aligned OOF/test predictions."""
     required = {target, id_column, fold_column}
@@ -210,7 +225,7 @@ def run_cv(
         all_test_features = test[features]
 
     oof = np.full(len(train), np.nan, dtype=float)
-    test_pred = np.zeros(len(test), dtype=float)
+    test_pred = np.zeros(len(test), dtype=float) if predict_test else None
     fold_rows: list[dict[str, object]] = []
     models = []
 
@@ -250,9 +265,10 @@ def run_cv(
         fitted_model.fit(x_train, y_train)
 
         valid_pred = fitted_model.predict_proba(x_valid)[:, 1]
-        fold_test_pred = fitted_model.predict_proba(x_test)[:, 1]
         oof[valid_mask.to_numpy()] = valid_pred
-        test_pred += fold_test_pred / len(folds)
+        if predict_test:
+            fold_test_pred = fitted_model.predict_proba(x_test)[:, 1]
+            test_pred += fold_test_pred / len(folds)
 
         fold_auc = roc_auc_score(y_valid, valid_pred)
         fold_rows.append(
@@ -283,6 +299,8 @@ def run_cv(
     print(fold_df)
 
     if save_prefix is not None:
+        if not predict_test:
+            raise ValueError("cannot save test predictions when predict_test=False")
         destination = Path(output_dir or "artifacts")
         destination.mkdir(parents=True, exist_ok=True)
         np.save(destination / f"{save_prefix}_oof.npy", oof)
